@@ -1,0 +1,35 @@
+{
+  "name": "cordova-plugin-zebraprinter",
+  "version": "1.0.1",
+  "description": "A Cordova/Phonegap driver for Zebra printers",
+  "cordova": {
+    "id": "cordova-plugin-zebraprinter",
+    "platforms": [
+      "android",
+      "browser"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesusbaqui/zebraprinter.git"
+  },
+  "keywords": [
+    "cordova",
+    "zebra",
+    "printer",
+    "bluetooth",
+    "usb",
+    "print",
+    "android",
+    "install",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "homepage": "https://github.com/jesusbaqui/zebraprinter#readme"
+}
