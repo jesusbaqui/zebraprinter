@@ -12,7 +12,7 @@ exports.usbPrint = function(zpl, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usbPrint', [zpl]);
 };
 
-exports.usdFind = function(successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usdFind', []);
+exports.usbFind = function(successCallback, errorCallback) {
+    cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usbFind', []);
 };
 
