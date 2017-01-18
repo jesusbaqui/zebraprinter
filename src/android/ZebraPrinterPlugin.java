@@ -94,8 +94,8 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
           try {
             String mac = args.getString(0);
             String msg = args.getString(1);
-            String filePath = args.getString(2);
-            printWithImage(callbackContext, mac, msg, filePath);
+            String images = args.getString(2);
+            printWithImage(callbackContext, mac, msg, images);
           } catch (Exception e) {
             Log.e(LOG_TAG, e.getMessage());
             e.printStackTrace();
@@ -188,13 +188,13 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
           }
         }).start();
     }
-    void printWithImage(final CallbackContext callbackContext, final String mac, final String msg, final String filePath) throws IOException {
+    void printWithImage(final CallbackContext callbackContext, final String mac, final String msg, final String images) throws IOException {
     new Thread(new Runnable() {
       @Override
       public void run() {
         printer = connect(mac);
         if (printer != null) {
-          printLabelWithImage(msg, filePath);
+          printLabelWithImage(msg, images);
           callbackContext.success(msg);
         } else {
           disconnect();
@@ -321,9 +321,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
     private void printLabelWithImage(String msg, String images) {
       try {
         //SEND IMAGES FIRST
-        Gson gson = new Gson();
-        String[] imagesArray = gson.fromJson(images, String[].class);
-        List<String> imagesList = Arrays.asList(imagesArray);
+        List<String> imagesList = Arrays.asList(new Gson().fromJson(images, String[].class));
         int counter = 0;
         for (String base64:imagesList) {
           Bitmap bmp = decodeBase64(base64);
