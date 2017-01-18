@@ -1,41 +1,53 @@
-package cordova.plugins.zebraprinter;
-
-import java.util.LinkedList;
-import java.util.List;
+package cordova.plugin.zebraprinter;
 
 import android.app.Activity;
-
-import java.io.IOException;
-import android.os.Bundle;
-import android.os.Looper;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.json.JSONArray;
-import org.json.JSONException;
-import android.util.Log;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.app.PendingIntent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.util.Base64;
+import android.util.Log;
 
-import com.zebra.sdk.comm.ConnectionException;
-import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
-import com.zebra.sdk.printer.discovery.DiscoveredPrinter;
-import com.zebra.sdk.printer.discovery.DiscoveredPrinterUsb;
-import com.zebra.sdk.printer.discovery.DiscoveredPrinterBluetooth;
-import com.zebra.sdk.printer.discovery.DiscoveryHandler;
-import com.zebra.sdk.printer.discovery.UsbDiscoverer;
+import com.google.gson.Gson;
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
 import com.zebra.sdk.comm.ConnectionException;
-import com.zebra.sdk.comm.TcpConnection;
+import com.zebra.sdk.device.ZebraIllegalArgumentException;
+import com.zebra.sdk.graphics.ZebraImageFactory;
+import com.zebra.sdk.graphics.ZebraImageI;
 import com.zebra.sdk.printer.PrinterLanguage;
 import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
 import com.zebra.sdk.printer.ZebraPrinterLanguageUnknownException;
+import com.zebra.sdk.printer.discovery.BluetoothDiscoverer;
+import com.zebra.sdk.printer.discovery.DiscoveredPrinter;
+import com.zebra.sdk.printer.discovery.DiscoveredPrinterUsb;
+import com.zebra.sdk.printer.discovery.DiscoveryHandler;
+import com.zebra.sdk.printer.discovery.UsbDiscoverer;
+
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ZebraPrinterPlugin extends CordovaPlugin {
     // Global
@@ -78,7 +90,19 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-        if (action.equals("print")) {
+        if (action.equals("printWithImg")) {
+          try {
+            String mac = args.getString(0);
+            String msg = args.getString(1);
+            String filePath = args.getString(2);
+            printWithImage(callbackContext, mac, msg, filePath);
+          } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+            e.printStackTrace();
+          }
+          return true;
+        }
+        else if (action.equals("print")) {
             try {
                 String mac = args.getString(0);
                 String msg = args.getString(1);
@@ -164,6 +188,21 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
           }
         }).start();
     }
+    void printWithImage(final CallbackContext callbackContext, final String mac, final String msg, final String filePath) throws IOException {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        printer = connect(mac);
+        if (printer != null) {
+          printLabelWithImage(msg, filePath);
+          callbackContext.success(msg);
+        } else {
+          disconnect();
+          callbackContext.error("Error");
+        }
+      }
+    }).start();
+  }
 
     // Usb Actions
     void findUsbPrinter(final CallbackContext callbackContext) {
@@ -256,7 +295,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
 
         return printer;
     }
-    public Boolean isBluetoothSelected(){
+    private Boolean isBluetoothSelected(){
       return true;
     }
     public void disconnect() {
@@ -272,32 +311,100 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
         try {
             byte[] configLabel = getConfigLabel(msg);
             printerConnection.write(configLabel);
-            sleep(1500);
+            sleep(500);
         } catch (ConnectionException e) {
 
         } finally {
             disconnect();
         }
     }
+    private void printLabelWithImage(String msg, String images) {
+      try {
+        //SEND IMAGES FIRST
+        Gson gson = new Gson();
+        String[] imagesArray = gson.fromJson(images, String[].class);
+        List<String> imagesList = Arrays.asList(imagesArray);
+        int counter = 0;
+        for (String base64:imagesList) {
+          Bitmap bmp = decodeBase64(base64);
+          int height = bmp.getHeight();
+          int width = bmp.getWidth();
+          bmp.setHasAlpha(true);
+
+          Bitmap monochromeBmp = getMonochromeBitmap(bmp, width, height);
+          ZebraImageI image = ZebraImageFactory.getImage(monochromeBmp);
+          printer.storeImage("IMAGE" + counter, image, width, height);
+          counter++;
+          bmp.recycle();
+          monochromeBmp.recycle();
+        }
+
+        //SEND ZPL WITH PREVIOUS IMAGES REFERENCES AFTER
+        byte[] configLabel = getConfigLabel(msg);
+        printerConnection.write(configLabel);
+        sleep(500);
+      } catch (ConnectionException e) {
+
+      } catch(IOException e) {
+
+      } catch(ZebraIllegalArgumentException e) {
+
+      } finally {
+        disconnect();
+      }
+  }
 
     private byte[] getConfigLabel(String msg) {
-        PrinterLanguage printerLanguage = printer.getPrinterControlLanguage();
-
-        byte[] configLabel = null;
-        if (printerLanguage == PrinterLanguage.ZPL) {
-            configLabel = msg.getBytes();
-        } else if (printerLanguage == PrinterLanguage.CPCL) {
-            String cpclConfigLabel = "! 0 200 200 406 1\r\n" + "ON-FEED IGNORE\r\n" + "BOX 20 20 380 380 8\r\n" + "T 0 6 137 177 TEST\r\n" + "PRINT\r\n";
-            configLabel = cpclConfigLabel.getBytes();
-        }
-        return configLabel;
+        return msg.getBytes();
     }
-    public static void sleep(int ms) {
+    private static void sleep(int ms) {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+    private static Bitmap decodeBase64(String input) {
+      byte[] decodedBytes = Base64.decode(input, 0);
+      BitmapFactory.Options op = new BitmapFactory.Options();
+      op.inPreferredConfig = Bitmap.Config.ARGB_8888;
+      return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length, op);
+    }
+    private Bitmap getMonochromeBitmap(Bitmap src, int width, int height){
+      Bitmap monochromeBmp = src.copy(Bitmap.Config.ARGB_8888, true);
+      src.recycle();
+      int pixel;
+      int k = 0;
+      int B=0,G=0,R=0,A=0;
+      try{
+        for(int x = 0; x < height; x++) {
+          for(int y = 0; y < width; y++, k++) {
+            pixel = monochromeBmp.getPixel(y, x);
+
+            A = Color.alpha(pixel);
+            R = Color.red(pixel);
+            G = Color.green(pixel);
+            B = Color.blue(pixel);
+            R = G = B = (int)(0.299 * R + 0.587 * G + 0.114 * B);
+
+            if (A < 128) {
+              monochromeBmp.setPixel(y,x, Color.WHITE);
+            } else {
+              if (R < 128) {
+                monochromeBmp.setPixel(y,x, Color.BLACK);
+              } else {
+                monochromeBmp.setPixel(y,x, Color.WHITE);
+              }
+            }
+          }
+        }
+
+        return monochromeBmp;
+      }
+      catch (Exception e) {
+        // TODO: handle exception
+        return null;
+      }
     }
 
     //USB Discovery Handler

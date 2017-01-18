@@ -4,6 +4,10 @@ exports.print = function(mac, str, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'print', [mac, str]);
 };
 
+exports.printWithImg = function(mac, str, filePath, successCallback, errorCallback) {
+    cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'printWithImg', [mac, str, filePath]);
+};
+
 exports.find = function(successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'find', []);
 };
