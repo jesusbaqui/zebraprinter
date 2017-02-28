@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-zebraprinter",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A Cordova/Phonegap driver for Zebra printers",
   "cordova": {
     "id": "cordova-plugin-zebraprinter",

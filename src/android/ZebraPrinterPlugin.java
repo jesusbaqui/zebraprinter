@@ -17,6 +17,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zebra.sdk.comm.BluetoothConnection;
@@ -323,7 +324,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
         //SEND IMAGES FIRST
         List<String> imagesList = Arrays.asList(new Gson().fromJson(images, String[].class));
         int counter = 0;
-        for (String base64:imagesList) {
+        for (String base64 : imagesList) {
           Bitmap bmp = decodeBase64(base64);
           int height = bmp.getHeight();
           int width = bmp.getWidth();
@@ -337,17 +338,21 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
           monochromeBmp.recycle();
         }
 
-        //SEND ZPL WITH PREVIOUS IMAGES REFERENCES AFTER
+        //SEND ZPL WITH PREVIOUS IMAGES REFERENCES
         byte[] configLabel = getConfigLabel(msg);
         printerConnection.write(configLabel);
-        sleep(500);
-      } catch (ConnectionException e) {
+        sleep(1000);
+/*      } catch (ConnectionException e) {
 
       } catch(IOException e) {
 
       } catch(ZebraIllegalArgumentException e) {
 
-      } finally {
+      }*/
+      } catch(Exception e) {
+        Toast.makeText(cordova.getActivity(), "Error de impresión", Toast.LENGTH_SHORT);
+      }
+      finally {
         disconnect();
       }
   }
