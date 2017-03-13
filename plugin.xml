@@ -7,10 +7,10 @@
 	<description>A Cordova driver for Zebra printers</description>
     <license>Apache</license>
     <engines>
-        <engine name="cordova" version=">=3.0.0" />
+        <engine name="cordova" version=">=3.4.0" />
     </engines>    
 
-    <js-module src="www/zebraprinter.js" name="ZebraPrinterPlugin">
+    <js-module src="www/zebraprinter.js" name="zebraprinter">
         <clobbers target="zebraprinter" />
     </js-module>
 
