@@ -31,7 +31,7 @@ cordova.plugins.zbtprinter.print("AC:3F:A4:1D:7A:5C", "! U1 setvar "device.langu
 ###Cordova
 
 ```
-cordova plugin add https://github.com/peoplewareDo/zbtprinter.git
+cordova plugin add https://github.com/peoplewareDo/zebraprinter.git
 ```
 
 ###Phonegap build
