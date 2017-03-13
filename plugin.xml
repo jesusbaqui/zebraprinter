@@ -11,7 +11,7 @@
     </engines>    
 
     <js-module src="www/zebraprinter.js" name="ZebraPrinterPlugin">
-        <clobbers target="cordova.plugin.zebraprinter" />
+        <clobbers target="zebraprinter" />
     </js-module>
 
     <!-- android -->
