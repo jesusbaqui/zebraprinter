@@ -415,17 +415,25 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
     }
 
     //USB Discovery Handler
-    class UsbDiscoveryHandler implements DiscoveryHandler {
+     class UsbDiscoveryHandler implements DiscoveryHandler {
         public List<DiscoveredPrinterUsb> printers;
+        public boolean discoveryComplete = false;
+
         public UsbDiscoveryHandler() {
             printers = new LinkedList<DiscoveredPrinterUsb>();
         }
+
         public void foundPrinter(final DiscoveredPrinter printer) {
             printers.add((DiscoveredPrinterUsb) printer);
         }
+
         public void discoveryFinished() {
+            discoveryComplete = true;
         }
+
         public void discoveryError(String message) {
+            discoveryComplete = true;
         }
-    }
+    }    
+   
 }
