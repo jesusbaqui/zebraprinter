@@ -135,7 +135,8 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
         }
         else if (action.equals("usbFind")) {
             try {
-                findUsbPrinter(callbackContext);
+                Integer printer = args.getInteger(0);
+                findUsbPrinter(printer, callbackContext);
             } catch (Exception e) {
                 Log.e(LOG_TAG, e.getMessage());
                 e.printStackTrace();
@@ -206,7 +207,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
   }
 
     // Usb Actions
-    void findUsbPrinter(final CallbackContext callbackContext) {
+    void findUsbPrinter(final Integer printer, final CallbackContext callbackContext) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -225,7 +226,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
                                         
                     if (handler.printers != null && handler.printers.size() > 0)
                     {
-                      discoveredPrinterUsb = handler.printers.get(0);
+                      discoveredPrinterUsb = handler.printers.get(printer);
                       mUsbManager.requestPermission(discoveredPrinterUsb.device, mPermissionIntent);
                       callbackContext.success("true");
                     }
