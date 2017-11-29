@@ -135,7 +135,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
         }
         else if (action.equals("usbFind")) {
             try {
-                Integer printer = args.getInteger(0);
+                Integer printer = args.getInt(0);
                 findUsbPrinter(printer, callbackContext);
             } catch (Exception e) {
                 Log.e(LOG_TAG, e.getMessage());
