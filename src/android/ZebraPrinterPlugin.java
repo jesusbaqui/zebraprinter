@@ -219,6 +219,10 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
                     UsbDiscoveryHandler handler = new UsbDiscoveryHandler();
                     UsbDiscoverer.findPrinters(getApplicationContext(), handler);
 
+                    while (!handler.discoveryComplete) {
+                        Thread.sleep(100);
+                    }
+                                        
                     if (handler.printers != null && handler.printers.size() > 0)
                     {
                       discoveredPrinterUsb = handler.printers.get(0);
