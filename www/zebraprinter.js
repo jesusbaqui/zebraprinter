@@ -1,5 +1,5 @@
-var exec = require('cordova/exec');
-
+//var exec = require('cordova/exec');
+/**
 exports.print = function(mac, str, successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'print', [mac, str]);
 };
@@ -18,5 +18,22 @@ exports.usbPrint = function(zpl, successCallback, errorCallback) {
 
 exports.usbFind = function(successCallback, errorCallback) {
     cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usbFind', []);
-};
+};*/
 
+module.exports = {
+    print: function(mac, str, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'print', [mac, str]);
+    },
+    printWithImg: function(mac, str, images, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'printWithImg', [mac, str, images]);
+    },
+    find: function(successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'find', []);
+    },
+    usbPrint: function(zpl, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usbPrint', [zpl]);
+    },
+    usbFind: function(printer, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, 'ZebraPrinterPlugin', 'usbFind', [printer]);
+    }
+};

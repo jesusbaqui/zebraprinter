@@ -135,7 +135,8 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
         }
         else if (action.equals("usbFind")) {
             try {
-                findUsbPrinter(callbackContext);
+                Integer printer = args.getInt(0);
+                findUsbPrinter(printer, callbackContext);
             } catch (Exception e) {
                 Log.e(LOG_TAG, e.getMessage());
                 e.printStackTrace();
@@ -206,7 +207,7 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
   }
 
     // Usb Actions
-    void findUsbPrinter(final CallbackContext callbackContext) {
+    void findUsbPrinter(final Integer printer, final CallbackContext callbackContext) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -219,9 +220,13 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
                     UsbDiscoveryHandler handler = new UsbDiscoveryHandler();
                     UsbDiscoverer.findPrinters(getApplicationContext(), handler);
 
+                    while (!handler.discoveryComplete) {
+                        Thread.sleep(100);
+                    }
+                                        
                     if (handler.printers != null && handler.printers.size() > 0)
                     {
-                      discoveredPrinterUsb = handler.printers.get(0);
+                      discoveredPrinterUsb = handler.printers.get(printer);
                       mUsbManager.requestPermission(discoveredPrinterUsb.device, mPermissionIntent);
                       callbackContext.success("true");
                     }
@@ -411,17 +416,25 @@ public class ZebraPrinterPlugin extends CordovaPlugin {
     }
 
     //USB Discovery Handler
-    class UsbDiscoveryHandler implements DiscoveryHandler {
+     class UsbDiscoveryHandler implements DiscoveryHandler {
         public List<DiscoveredPrinterUsb> printers;
+        public boolean discoveryComplete = false;
+
         public UsbDiscoveryHandler() {
             printers = new LinkedList<DiscoveredPrinterUsb>();
         }
+
         public void foundPrinter(final DiscoveredPrinter printer) {
             printers.add((DiscoveredPrinterUsb) printer);
         }
+
         public void discoveryFinished() {
+            discoveryComplete = true;
         }
+
         public void discoveryError(String message) {
+            discoveryComplete = true;
         }
-    }
+    }    
+   
 }
